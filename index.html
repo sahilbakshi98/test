@@ -23,28 +23,29 @@
             padding: 3rem;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 450px;
-            min-height: 300px;
+            width: 500px;
+            min-height: 350px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
         h1 { color: #ff4d6d; font-size: 2.2rem; margin-bottom: 2rem; }
 
+        /* This container keeps them centered together initially */
         .buttons-container {
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 20px;
             width: 100%;
-            height: 80px;
+            height: 100px;
             position: relative;
         }
 
         button {
-            padding: 15px 30px;
+            padding: 15px 35px;
             font-size: 1.2rem;
             border: none;
             border-radius: 50px;
@@ -54,22 +55,19 @@
         }
 
         #yes-btn {
-            background-color: #ff4d6d;
+            background-color: #f15e75;
             color: white;
-            z-index: 2;
         }
 
         #no-btn { 
             background-color: #adb5bd; 
             color: white; 
-            position: absolute; /* Absolute within the container for initial centering */
-            transition: all 0.15s ease-out;
             white-space: nowrap;
-            z-index: 3;
+            transition: all 0.1s ease-out;
         }
 
-        .success-content { display: none; }
-        .heart { color: #ff4d6d; font-size: 4rem; animation: beat 1s infinite; }
+        .success-content { display: none; flex-direction: column; align-items: center; }
+        .heart { color: #ff4d6d; font-size: 4rem; animation: beat 1s infinite; margin-bottom: 10px; }
 
         @keyframes beat {
             0%, 100% { transform: scale(1); }
@@ -101,21 +99,8 @@
         const yesBtn = document.getElementById('yes-btn');
         const questionPage = document.getElementById('question-page');
         const successPage = document.getElementById('success-page');
-        const btnWrap = document.getElementById('btn-wrap');
-
-        // Center the buttons initially
-        function initButtons() {
-            // Place No button to the right of the Yes button
-            const yesRect = yesBtn.getBoundingClientRect();
-            const wrapRect = btnWrap.getBoundingClientRect();
-            
-            // Initial offset: center the pair
-            // We set the "No" button relative to the "Yes" button's center
-            noBtn.style.left = (yesBtn.offsetLeft + yesBtn.offsetWidth + 20) + "px";
-            noBtn.style.top = yesBtn.offsetTop + "px";
-        }
-
-        window.onload = initButtons;
+        
+        let interactionStarted = false;
 
         document.addEventListener('mousemove', (e) => {
             const x = e.clientX;
@@ -129,25 +114,41 @@
                 Math.pow(x - buttonCenterX, 2) + Math.pow(y - buttonCenterY, 2)
             );
 
-            // If cursor gets within 100px, run!
+            // Trigger runaway when mouse is within 100px
             if (distance < 100) {
-                // Once it moves the first time, we switch to fixed to avoid container issues
-                if (noBtn.style.position !== 'fixed') {
-                    noBtn.style.position = 'fixed';
+                if (!interactionStarted) {
+                    lockYesButton(); // Pin the "Yes" button in its current spot
+                    interactionStarted = true;
                 }
                 moveButton(x, y);
             }
         });
 
+        function lockYesButton() {
+            const yesRect = yesBtn.getBoundingClientRect();
+            const noRect = noBtn.getBoundingClientRect();
+
+            // Pin Yes button to its current pixel location
+            yesBtn.style.position = 'fixed';
+            yesBtn.style.left = yesRect.left + 'px';
+            yesBtn.style.top = yesRect.top + 'px';
+            yesBtn.style.margin = '0';
+
+            // Switch No button to fixed so it can fly anywhere
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = noRect.left + 'px';
+            noBtn.style.top = noRect.top + 'px';
+            noBtn.style.margin = '0';
+        }
+
         function moveButton(cursorX, cursorY) {
-            const padding = 50; 
+            const padding = 20; 
             const maxX = window.innerWidth - noBtn.offsetWidth - padding;
             const maxY = window.innerHeight - noBtn.offsetHeight - padding;
 
             let randomX, randomY;
             let distFromCursor;
 
-            // Ensure the new spot isn't where the cursor currently is
             do {
                 randomX = Math.max(padding, Math.random() * maxX);
                 randomY = Math.max(padding, Math.random() * maxY);
@@ -162,7 +163,7 @@
 
         yesBtn.addEventListener('click', () => {
             questionPage.style.display = 'none';
-            successPage.style.display = 'block';
+            successPage.style.display = 'flex';
             noBtn.style.display = 'none';
 
             // Confetti Blast
