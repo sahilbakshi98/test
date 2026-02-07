@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A Special Question ❤️</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
@@ -29,11 +30,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         h1 { color: #ff4d6d; font-size: 2.2rem; margin-bottom: 2rem; }
 
-        /* This container keeps them centered together initially */
         .buttons-container {
             display: flex;
             justify-content: center;
@@ -51,12 +52,15 @@
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
-            transition: transform 0.2s;
         }
 
         #yes-btn {
             background-color: #f15e75;
             color: white;
+            z-index: 2;
+            /* Breathing Animation */
+            animation: breathe 1.5s infinite ease-in-out;
+            box-shadow: 0 0 0 0 rgba(241, 94, 117, 0.7);
         }
 
         #no-btn { 
@@ -64,6 +68,23 @@
             color: white; 
             white-space: nowrap;
             transition: all 0.1s ease-out;
+            z-index: 3;
+        }
+
+        /* Breathing Effect Definition */
+        @keyframes breathe {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(241, 94, 117, 0.4);
+            }
+            50% {
+                transform: scale(1.1); /* Grows slightly */
+                box-shadow: 0 0 0 15px rgba(241, 94, 117, 0); /* Soft glow pulse */
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(241, 94, 117, 0);
+            }
         }
 
         .success-content { display: none; flex-direction: column; align-items: center; }
@@ -114,10 +135,9 @@
                 Math.pow(x - buttonCenterX, 2) + Math.pow(y - buttonCenterY, 2)
             );
 
-            // Trigger runaway when mouse is within 100px
             if (distance < 100) {
                 if (!interactionStarted) {
-                    lockYesButton(); // Pin the "Yes" button in its current spot
+                    lockYesButton();
                     interactionStarted = true;
                 }
                 moveButton(x, y);
@@ -128,13 +148,13 @@
             const yesRect = yesBtn.getBoundingClientRect();
             const noRect = noBtn.getBoundingClientRect();
 
-            // Pin Yes button to its current pixel location
+            // Pin Yes button in place
             yesBtn.style.position = 'fixed';
             yesBtn.style.left = yesRect.left + 'px';
             yesBtn.style.top = yesRect.top + 'px';
             yesBtn.style.margin = '0';
 
-            // Switch No button to fixed so it can fly anywhere
+            // No button becomes a wanderer
             noBtn.style.position = 'fixed';
             noBtn.style.left = noRect.left + 'px';
             noBtn.style.top = noRect.top + 'px';
@@ -166,7 +186,6 @@
             successPage.style.display = 'flex';
             noBtn.style.display = 'none';
 
-            // Confetti Blast
             const duration = 5 * 1000;
             const animationEnd = Date.now() + duration;
             const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
