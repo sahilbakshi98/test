@@ -53,7 +53,7 @@
             border-radius: 30px;
             box-shadow: 0 15px 35px rgba(255, 77, 109, 0.2);
             width: 450px;
-            min-height: 380px;
+            min-height: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -74,9 +74,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px; /* This keeps them side-by-side naturally */
+            gap: 20px;
             width: 100%;
             height: 80px;
+            /* No relative positioning here so we can grab clean coordinates */
         }
 
         button {
@@ -86,26 +87,25 @@
             border-radius: 50px;
             cursor: pointer;
             font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         #yes-btn {
             background-color: var(--pink);
             color: white;
             box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
-            z-index: 11;
+            transition: transform 0.2s; /* Only small hover effect, no sliding */
+            z-index: 15;
         }
 
         #no-btn { 
             background-color: #adb5bd; 
             color: white;
-            z-index: 12;
-            /* No absolute positioning here - let flexbox handle it initially */
+            z-index: 20;
+            transition: all 0.1s ease-out; /* Snap move */
         }
 
         .success-content { display: none; flex-direction: column; align-items: center; }
         .success-content h2 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; color: var(--pink); }
-        
         .heart-icon { color: var(--pink); font-size: 4rem; animation: beat 1.2s infinite; margin-bottom: 10px; }
 
         @keyframes beat {
@@ -142,6 +142,8 @@
         const successPage = document.getElementById('success-page');
         const typewriterElement = document.getElementById('typewriter-text');
         
+        let interactionStarted = false;
+
         // 1. Typewriter Effect
         const text = "Hey baby, will you be my Valentine?";
         let charIndex = 0;
@@ -173,8 +175,6 @@
         };
 
         // 3. The Runaway Logic
-        let isPinned = false;
-
         document.addEventListener('mousemove', (e) => {
             const x = e.clientX;
             const y = e.clientY;
@@ -185,52 +185,56 @@
 
             const distance = Math.sqrt(Math.pow(x - noCenterX, 2) + Math.pow(y - noCenterY, 2));
 
-            // Only move the "No" button if the cursor is within 100px
+            // Runaway threshold
             if (distance < 100) {
-                if (!isPinned) {
-                    pinButtons();
-                    isPinned = true;
+                if (!interactionStarted) {
+                    freezeYesButton();
+                    interactionStarted = true;
                 }
                 moveNoButton(x, y);
             }
         });
 
-        // This function captures their positions and switches them to "fixed" 
-        // so the layout doesn't break when one button starts moving.
-        function pinButtons() {
+        function freezeYesButton() {
             const yesRect = yesBtn.getBoundingClientRect();
             const noRect = noBtn.getBoundingClientRect();
 
-            // Lock Yes button exactly where it is in the flex layout
+            // Lock Yes button exactly where it is in the centered layout
             yesBtn.style.position = 'fixed';
             yesBtn.style.left = yesRect.left + 'px';
             yesBtn.style.top = yesRect.top + 'px';
+            yesBtn.style.margin = '0';
 
-            // Switch No button to fixed so it can teleport
+            // Set No button to fixed so it doesn't leave gaps in the card
             noBtn.style.position = 'fixed';
             noBtn.style.left = noRect.left + 'px';
             noBtn.style.top = noRect.top + 'px';
+            noBtn.style.margin = '0';
         }
 
         function moveNoButton(cursorX, cursorY) {
-            const padding = 60; // Extra padding to keep it well away from screen edges
-            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
-            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
+            
+            // Safe boundaries to keep it on screen
+            const margin = 20;
+            const maxX = window.innerWidth - btnWidth - margin;
+            const maxY = window.innerHeight - btnHeight - margin;
 
-            let randomX, randomY, distToCursor;
+            let randomX, randomY, dist;
 
-            // Ensure the button stays on screen AND far from the cursor
+            // Find a spot on screen that is NOT near the cursor
             do {
-                randomX = Math.random() * (maxX - padding) + padding;
-                randomY = Math.random() * (maxY - padding) + padding;
-                distToCursor = Math.sqrt(Math.pow(randomX - cursorX, 2) + Math.pow(randomY - cursorY, 2));
-            } while (distToCursor < 180); // Ensure the new spot is at least 180px away from cursor
+                randomX = Math.random() * (maxX - margin) + margin;
+                randomY = Math.random() * (maxY - margin) + margin;
+                dist = Math.sqrt(Math.pow(randomX - cursorX, 2) + Math.pow(randomY - cursorY, 2));
+            } while (dist < 150);
 
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
         }
 
-        // 4. Success Interaction
+        // 4. Success logic
         yesBtn.addEventListener('click', () => {
             questionPage.style.display = 'none';
             successPage.style.display = 'flex';
