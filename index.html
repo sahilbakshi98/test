@@ -4,109 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A Special Question ❤️</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <style>
-        :root {
-            --pink: #ff4d6d;
-            --soft-pink: #ffb3c1;
-            --bg-gradient: radial-gradient(circle, #fff0f3 0%, #ffc1cf 100%);
-        }
-
         body {
             margin: 0;
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--bg-gradient);
-            font-family: 'Quicksand', sans-serif;
+            background-color: #ffe5ec;
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
             text-align: center;
         }
 
-        .hearts-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .floating-heart {
-            position: absolute;
-            color: rgba(255, 77, 109, 0.3);
-            animation: floatUp 6s linear infinite;
-            opacity: 0;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(110vh) scale(0); opacity: 0; }
-            50% { opacity: 0.8; }
-            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
-        }
-
         #card {
-            background: rgba(255, 255, 255, 0.9);
+            background: white;
             padding: 3rem;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(255, 77, 109, 0.2);
-            width: 450px;
-            min-height: 400px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 500px;
+            min-height: 350px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10;
-            backdrop-filter: blur(5px);
         }
 
-        h1 { 
-            color: var(--pink); 
-            font-family: 'Dancing Script', cursive;
-            font-size: 2.8rem; 
-            margin-bottom: 2rem;
-            min-height: 120px;
-        }
+        h1 { color: #ff4d6d; font-size: 2.2rem; margin-bottom: 2rem; }
 
+        /* This container keeps them centered together initially */
         .buttons-container {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 20px;
             width: 100%;
-            height: 80px;
-            /* No relative positioning here so we can grab clean coordinates */
+            height: 100px;
+            position: relative;
         }
 
         button {
-            padding: 12px 35px;
+            padding: 15px 35px;
             font-size: 1.2rem;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: bold;
+            transition: transform 0.2s;
         }
 
         #yes-btn {
-            background-color: var(--pink);
+            background-color: #f15e75;
             color: white;
-            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
-            transition: transform 0.2s; /* Only small hover effect, no sliding */
-            z-index: 15;
         }
 
         #no-btn { 
             background-color: #adb5bd; 
-            color: white;
-            z-index: 20;
-            transition: all 0.1s ease-out; /* Snap move */
+            color: white; 
+            white-space: nowrap;
+            transition: all 0.1s ease-out;
         }
 
         .success-content { display: none; flex-direction: column; align-items: center; }
-        .success-content h2 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; color: var(--pink); }
-        .heart-icon { color: var(--pink); font-size: 4rem; animation: beat 1.2s infinite; margin-bottom: 10px; }
+        .heart { color: #ff4d6d; font-size: 4rem; animation: beat 1s infinite; margin-bottom: 10px; }
 
         @keyframes beat {
             0%, 100% { transform: scale(1); }
@@ -116,22 +77,20 @@
 </head>
 <body>
 
-    <div class="hearts-bg" id="hearts-bg"></div>
-
     <div id="card">
         <div id="question-page">
-            <div class="heart-icon">❤️</div>
-            <h1 id="typewriter-text"></h1>
-            <div class="buttons-container">
+            <div class="heart">❤️</div>
+            <h1>Hey baby, will you be my Valentine?</h1>
+            <div class="buttons-container" id="btn-wrap">
                 <button id="yes-btn">Yes</button>
                 <button id="no-btn">No</button>
             </div>
         </div>
 
         <div id="success-page" class="success-content">
-            <div class="heart-icon">💖</div>
-            <h2>Yay! My forever Valentine!</h2>
-            <p>I love you so much 🥰</p>
+            <div class="heart">💖</div>
+            <h1>Yay! I knew you'd say yes!</h1>
+            <p>I love you bujji bangaram 🥰</p>
         </div>
     </div>
 
@@ -140,112 +99,85 @@
         const yesBtn = document.getElementById('yes-btn');
         const questionPage = document.getElementById('question-page');
         const successPage = document.getElementById('success-page');
-        const typewriterElement = document.getElementById('typewriter-text');
         
         let interactionStarted = false;
 
-        // 1. Typewriter Effect
-        const text = "Hey baby, will you be my Valentine?";
-        let charIndex = 0;
-        function typeWriter() {
-            if (charIndex < text.length) {
-                typewriterElement.innerHTML += text.charAt(charIndex);
-                charIndex++;
-                setTimeout(typeWriter, 80);
-            }
-        }
-
-        // 2. Floating Hearts
-        function createFloatingHearts() {
-            const container = document.getElementById('hearts-bg');
-            for (let i = 0; i < 20; i++) {
-                const heart = document.createElement('div');
-                heart.className = 'floating-heart';
-                heart.innerHTML = '❤️';
-                heart.style.left = Math.random() * 100 + 'vw';
-                heart.style.animationDelay = Math.random() * 5 + 's';
-                heart.style.fontSize = (Math.random() * 15 + 10) + 'px';
-                container.appendChild(heart);
-            }
-        }
-
-        window.onload = () => {
-            typeWriter();
-            createFloatingHearts();
-        };
-
-        // 3. The Runaway Logic
         document.addEventListener('mousemove', (e) => {
             const x = e.clientX;
             const y = e.clientY;
             
-            const noRect = noBtn.getBoundingClientRect();
-            const noCenterX = noRect.left + noRect.width / 2;
-            const noCenterY = noRect.top + noRect.height / 2;
+            const buttonRect = noBtn.getBoundingClientRect();
+            const buttonCenterX = buttonRect.left + buttonRect.width / 2;
+            const buttonCenterY = buttonRect.top + buttonRect.height / 2;
 
-            const distance = Math.sqrt(Math.pow(x - noCenterX, 2) + Math.pow(y - noCenterY, 2));
+            const distance = Math.sqrt(
+                Math.pow(x - buttonCenterX, 2) + Math.pow(y - buttonCenterY, 2)
+            );
 
-            // Runaway threshold
+            // Trigger runaway when mouse is within 100px
             if (distance < 100) {
                 if (!interactionStarted) {
-                    freezeYesButton();
+                    lockYesButton(); // Pin the "Yes" button in its current spot
                     interactionStarted = true;
                 }
-                moveNoButton(x, y);
+                moveButton(x, y);
             }
         });
 
-        function freezeYesButton() {
+        function lockYesButton() {
             const yesRect = yesBtn.getBoundingClientRect();
             const noRect = noBtn.getBoundingClientRect();
 
-            // Lock Yes button exactly where it is in the centered layout
+            // Pin Yes button to its current pixel location
             yesBtn.style.position = 'fixed';
             yesBtn.style.left = yesRect.left + 'px';
             yesBtn.style.top = yesRect.top + 'px';
             yesBtn.style.margin = '0';
 
-            // Set No button to fixed so it doesn't leave gaps in the card
+            // Switch No button to fixed so it can fly anywhere
             noBtn.style.position = 'fixed';
             noBtn.style.left = noRect.left + 'px';
             noBtn.style.top = noRect.top + 'px';
             noBtn.style.margin = '0';
         }
 
-        function moveNoButton(cursorX, cursorY) {
-            const btnWidth = noBtn.offsetWidth;
-            const btnHeight = noBtn.offsetHeight;
-            
-            // Safe boundaries to keep it on screen
-            const margin = 20;
-            const maxX = window.innerWidth - btnWidth - margin;
-            const maxY = window.innerHeight - btnHeight - margin;
+        function moveButton(cursorX, cursorY) {
+            const padding = 20; 
+            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
 
-            let randomX, randomY, dist;
+            let randomX, randomY;
+            let distFromCursor;
 
-            // Find a spot on screen that is NOT near the cursor
             do {
-                randomX = Math.random() * (maxX - margin) + margin;
-                randomY = Math.random() * (maxY - margin) + margin;
-                dist = Math.sqrt(Math.pow(randomX - cursorX, 2) + Math.pow(randomY - cursorY, 2));
-            } while (dist < 150);
+                randomX = Math.max(padding, Math.random() * maxX);
+                randomY = Math.max(padding, Math.random() * maxY);
+                distFromCursor = Math.sqrt(
+                    Math.pow(randomX - cursorX, 2) + Math.pow(randomY - cursorY, 2)
+                );
+            } while (distFromCursor < 150);
 
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
         }
 
-        // 4. Success logic
         yesBtn.addEventListener('click', () => {
             questionPage.style.display = 'none';
             successPage.style.display = 'flex';
             noBtn.style.display = 'none';
 
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#ff4d6d', '#ffb3c1', '#ffffff']
-            });
+            // Confetti Blast
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random() * 0.2 + 0.1, y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random() * 0.2 + 0.7, y: Math.random() - 0.2 } }));
+            }, 250);
         });
     </script>
 </body>
