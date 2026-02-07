@@ -23,17 +23,24 @@
             padding: 3rem;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            z-index: 10;
+            position: relative;
+            width: 400px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        h1 { color: #ff4d6d; font-size: 2.5rem; margin-bottom: 2rem; }
+        h1 { color: #ff4d6d; font-size: 2.2rem; margin-bottom: 2rem; }
 
-        .buttons {
+        .buttons-container {
             display: flex;
-            gap: 20px;
             justify-content: center;
             align-items: center;
-            min-height: 100px;
+            width: 100%;
+            height: 100px;
+            position: relative; /* Container for absolute button positioning */
         }
 
         button {
@@ -46,16 +53,25 @@
             transition: transform 0.2s;
         }
 
-        #yes-btn { background-color: #ff4d6d; color: white; }
+        #yes-btn {
+            background-color: #ff4d6d;
+            color: white;
+            margin-right: 100px; /* Pushes the "No" button's start position to the right */
+        }
+
         #no-btn { 
             background-color: #adb5bd; 
             color: white; 
-            position: absolute; 
-            transition: all 0.1s ease; /* Faster jump for the "No" button */
+            position: absolute;
+            /* Default starting position */
+            left: 55%; 
+            top: 25px;
+            transition: all 0.15s ease-out;
+            white-space: nowrap;
         }
 
         .success-content { display: none; }
-        .heart { color: #ff4d6d; font-size: 5rem; animation: beat 1s infinite; }
+        .heart { color: #ff4d6d; font-size: 4rem; animation: beat 1s infinite; }
 
         @keyframes beat {
             0%, 100% { transform: scale(1); }
@@ -69,7 +85,7 @@
         <div id="question-page">
             <div class="heart">❤️</div>
             <h1>Will you be my Valentine?</h1>
-            <div class="buttons">
+            <div class="buttons-container">
                 <button id="yes-btn">Yes</button>
                 <button id="no-btn">No</button>
             </div>
@@ -77,8 +93,8 @@
 
         <div id="success-page" class="success-content">
             <div class="heart">💖</div>
-            <h1>Yay! See you on the 14th!</h1>
-            <p>I love you! 🥰</p>
+            <h1>Yay! I knew you'd say yes!</h1>
+            <p>Can't wait for our date. 🥰</p>
         </div>
     </div>
 
@@ -88,39 +104,60 @@
         const questionPage = document.getElementById('question-page');
         const successPage = document.getElementById('success-page');
 
-        // The "Runaway" Logic
-        noBtn.addEventListener('mouseover', () => {
-            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
-            noBtn.style.left = `${x}px`;
-            noBtn.style.top = `${y}px`;
+        // Distance-based movement
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            // Get center of the "No" button
+            const buttonRect = noBtn.getBoundingClientRect();
+            const buttonCenterX = buttonRect.left + buttonRect.width / 2;
+            const buttonCenterY = buttonRect.top + buttonRect.height / 2;
+
+            // Calculate distance between cursor and button center
+            const distance = Math.sqrt(
+                Math.pow(x - buttonCenterX, 2) + Math.pow(y - buttonCenterY, 2)
+            );
+
+            // If cursor is closer than 100 pixels, move the button
+            if (distance < 100) {
+                moveButton();
+            }
         });
 
-        // The "Yes" Logic with Confetti
+        function moveButton() {
+            // Keep the button within the screen bounds
+            const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+            const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+
+            const randomX = Math.max(10, Math.random() * maxX);
+            const randomY = Math.max(10, Math.random() * maxY);
+
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
+        }
+
+        // Handle the "Yes" click
         yesBtn.addEventListener('click', () => {
             questionPage.style.display = 'none';
-            successPage.style.display = 'block';
+            successPage.style.display = 'flex';
+            successPage.style.flexDirection = 'column';
+            successPage.style.alignItems = 'center';
             noBtn.style.display = 'none';
 
-            // Confetti Blast!
-            var duration = 5 * 1000;
-            var animationEnd = Date.now() + duration;
-            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            // Confetti Blast
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
 
-            function randomInRange(min, max) {
-              return Math.random() * (max - min) + min;
-            }
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
 
-            var interval = setInterval(function() {
-              var timeLeft = animationEnd - Date.now();
-
-              if (timeLeft <= 0) {
-                return clearInterval(interval);
-              }
-
-              var particleCount = 50 * (timeLeft / duration);
-              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
             }, 250);
         });
     </script>
